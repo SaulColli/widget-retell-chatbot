@@ -1,0 +1,17 @@
+# Logs
+api/logs/*.log
+api/logs/*
+!api/logs/.gitkeep
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Config files
+# (Descomenta la siguiente línea si prefieres que git ignore tu archivo config.php para no subir tu API Key por accidente)
+# api/config.php

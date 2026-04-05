@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Página de prueba para el Widget de Voz con Retell AI">
+  <title>Test Widget — Retell AI Voice</title>
+  <style>
+    /* Estilos de la página de prueba (demo) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg: #0a0a1a;
+      --surface: #12122a;
+      --text: #e0e0f0;
+      --text-muted: #7878a0;
+      --accent: #7c3aed;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .demo-container {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px 20px;
+    }
+
+    .demo-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      background: rgba(124, 58, 237, 0.15);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .demo-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .demo-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid rgba(124, 58, 237, 0.1);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .demo-hint .arrow {
+      font-size: 20px;
+      animation: bounce 1.5s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(4px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="demo-container">
+    <div class="demo-badge">Widget de Prueba</div>
+    <h1>Asistente de Voz AI</h1>
+    <p class="demo-subtitle">
+      Esta es una página de prueba para el widget de voz integrado con Retell AI.
+      Haz clic en el botón flotante púrpura para comenzar una conversación.
+    </p>
+    <div class="demo-hint">
+      <span>Haz clic en el botón</span>
+      <span class="arrow">↘</span>
+    </div>
+  </div>
+
+  <!-- =============================================
+       INSTALACIÓN DEL WIDGET
+       =============================================
+       Este es el único código que necesitas agregar.
+       Cambia data-agent-id por el ID de tu agente.
+       ============================================= -->
+  <script src="widget/app.js" data-agent-id="agent_xxxxxxxxxxxxxxxxxxxx" defer>
+  </script>
+</body>
+
+</html>

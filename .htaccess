@@ -1,0 +1,37 @@
+# =============================================
+# REGLAS DE SEGURIDAD — Widget Retell AI
+# =============================================
+
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# ── Proteger config.php de acceso directo via navegador ──
+<Files "config.php">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</Files>
+
+# ── Proteger archivos de log ──
+<FilesMatch "\.(log)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ── Permitir CORS para los endpoints API ──
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "POST, GET, OPTIONS"
+        Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    </FilesMatch>
+</IfModule>
