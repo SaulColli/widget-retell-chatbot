@@ -32,6 +32,15 @@ $payload = [
     'agent_id' => $data['agent_id']
 ];
 
+if (isset($data['canal'])) {
+    $payload['retell_llm_dynamic_variables'] = [
+        'canal' => $data['canal']
+    ];
+    $payload['metadata'] = [
+        'canal' => $data['canal']
+    ];
+}
+
 $ch = curl_init($retellUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
