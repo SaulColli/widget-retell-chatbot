@@ -22,7 +22,10 @@
   const STYLES_URL = BASE_URL + '/widget/styles.css';
   const API_INIT_URL = BASE_URL + '/api/chat_init.php';
   const API_MSG_URL = BASE_URL + '/api/chat_message.php';
+  const API_STATUS_URL = BASE_URL + '/api/chat_status.php';
   const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap';
+
+  const DEFAULT_GREETING = 'Hola, gracias por contactar con Ocean Tours. Soy Sara. ¿En qué puedo ayudarle hoy?';
 
   // Estado
   let shadowRoot = null;
@@ -95,6 +98,10 @@
     const historyContainer = container.querySelector('#rw-chat-history');
     historyContainer.innerHTML = '';
 
+    const input = container.querySelector('#rw-input');
+    input.removeAttribute('disabled');
+    input.placeholder = "Escribe un mensaje...";
+
     if (chat.history.length === 0) {
       appendMessage(container, 'agent', '¡Hola! ¿En qué te puedo ayudar hoy?', false);
     } else {
@@ -102,6 +109,13 @@
         appendMessage(container, msg.role, msg.content, false);
       });
     }
+    
+    if (chat.status === 'ended') {
+       handleChatEnded(container);
+    } else {
+       checkChatEnded(container, targetId);
+    }
+    
     return true;
   }
 
@@ -110,7 +124,12 @@
     localStorage.removeItem(LS_CHAT_ID);
     const historyContainer = container.querySelector('#rw-chat-history');
     historyContainer.innerHTML = '';
-    appendMessage(container, 'agent', '¡Hola! ¿En qué te puedo ayudar hoy?', false);
+    
+    const input = container.querySelector('#rw-input');
+    input.removeAttribute('disabled');
+    input.placeholder = "Escribe un mensaje...";
+
+    appendMessage(container, 'agent', DEFAULT_GREETING, false);
     renderSidebarList(container);
     // Initialise immediately so we have a chatId available
     await initChatSession(container);
@@ -150,6 +169,37 @@
     }
 
     buildUI();
+  }
+
+  async function syncAllChatsStatus(container) {
+    const list = getChatList();
+    let updated = false;
+
+    await Promise.all(list.map(async (chat) => {
+      if (chat.status === 'ended') return;
+      
+      try {
+        const resp = await fetch(`${API_STATUS_URL}?chat_id=${chat.id}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.chat_status === 'ended' || data.chat_status === 'completed' || data.chat_status === 'done' || data.chat_status === 'cancelled') {
+            chat.status = 'ended';
+            updated = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Sync failed for chat', chat.id);
+      }
+    }));
+
+    if (updated) {
+      saveChatList(list);
+      const current = list.find(c => c.id === chatId);
+      if (current && current.status === 'ended') {
+          handleChatEnded(container);
+      }
+      renderSidebarList(container);
+    }
   }
 
   function buildUI() {
@@ -202,8 +252,10 @@
     if (savedId && getChatList().some(c => c.id === savedId)) {
       loadChat(container, savedId);
     } else {
-      appendMessage(container, 'agent', '¡Hola! ¿En qué te puedo ayudar hoy?', false);
+      appendMessage(container, 'agent', DEFAULT_GREETING, false);
     }
+    
+    syncAllChatsStatus(container);
   }
 
   function renderSidebarList(container) {
@@ -301,15 +353,20 @@
   async function initChatSession(container) {
     if (chatId) return;
 
+    showTypingIndicator(container);
+
     try {
       const resp = await fetch(API_INIT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           agent_id: AGENT_ID,
           canal: CANAL
         })
       });
+
+      removeTypingIndicator(container);
+
       if (!resp.ok) throw new Error('Falló inicialización de chat');
 
       const data = await resp.json();
@@ -322,10 +379,12 @@
         saveChatList(list);
       }
 
-      saveMessage('agent', '¡Hola! ¿En qué te puedo ayudar hoy?');
+      saveMessage('agent', DEFAULT_GREETING);
+
       renderSidebarList(container);
 
     } catch (err) {
+      removeTypingIndicator(container);
       console.error(err);
       showError(container, 'No se pudo conectar al asistente.');
     }
@@ -367,9 +426,10 @@
         data.messages.filter(m => m.role === 'agent').forEach(msg => {
           appendMessage(container, 'agent', msg.content, true);
         });
-      } else {
-        throw new Error("Respuesta vacía del API");
       }
+
+      // Check if chat ended natively
+      checkChatEnded(container, chatId);
 
     } catch (err) {
       removeTypingIndicator(container);
@@ -402,6 +462,7 @@
   }
 
   function appendMessage(container, role, text, save = true) {
+    if (!text) return; // Prevent empty messages
     const history = container.querySelector('#rw-chat-history');
     const div = document.createElement('div');
     div.className = `rw-message rw-message-${role}`;
@@ -411,6 +472,52 @@
 
     if (save) {
       saveMessage(role, text);
+    }
+  }
+
+  function handleChatEnded(container) {
+    const input = container.querySelector('#rw-input');
+    const sendBtn = container.querySelector('#rw-send');
+
+    input.setAttribute('disabled', 'true');
+    input.placeholder = "El chat ha finalizado.";
+    sendBtn.setAttribute('disabled', 'true');
+
+    const history = container.querySelector('#rw-chat-history');
+    if (!history.querySelector('.rw-chat-ended-msg')) {
+      const div = document.createElement('div');
+      div.className = 'rw-chat-ended-msg';
+      div.style.cssText = "text-align: center; color: var(--rw-text-muted); font-size: 13px; margin: 16px 0;";
+      div.textContent = "Chat ended";
+      history.appendChild(div);
+      scrollToBottom(history);
+    }
+  }
+
+  function markChatAsEnded(targetId) {
+    const list = getChatList();
+    const chat = list.find(c => c.id === targetId);
+    if (chat && chat.status !== 'ended') {
+        chat.status = 'ended';
+        saveChatList(list);
+    }
+  }
+
+  async function checkChatEnded(container, targetChatId) {
+    if (!targetChatId) return;
+    try {
+      const resp = await fetch(`${API_STATUS_URL}?chat_id=${targetChatId}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.chat_status === 'ended' || data.chat_status === 'completed' || data.chat_status === 'done' || data.chat_status === 'cancelled') {
+          markChatAsEnded(targetChatId);
+          if (chatId === targetChatId) {
+             handleChatEnded(container);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("No se pudo verificar el status del chat", e);
     }
   }
 
