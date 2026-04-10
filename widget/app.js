@@ -23,6 +23,7 @@
   const API_INIT_URL = BASE_URL + '/api/chat_init.php';
   const API_MSG_URL = BASE_URL + '/api/chat_message.php';
   const API_STATUS_URL = BASE_URL + '/api/chat_status.php';
+  const API_END_URL = BASE_URL + '/api/chat_end.php';
   const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap';
 
   const DEFAULT_GREETING = 'Hola, gracias por contactar con Ocean Tours. Soy Sara. ¿En qué puedo ayudarle hoy?';
@@ -102,6 +103,9 @@
     input.removeAttribute('disabled');
     input.placeholder = "Escribe un mensaje...";
 
+    const endBtn = container.querySelector('#rw-end-btn');
+    if (endBtn) endBtn.style.display = 'flex';
+
     if (chat.history.length === 0) {
       appendMessage(container, 'agent', '¡Hola! ¿En qué te puedo ayudar hoy?', false);
     } else {
@@ -128,6 +132,9 @@
     const input = container.querySelector('#rw-input');
     input.removeAttribute('disabled');
     input.placeholder = "Escribe un mensaje...";
+    
+    const endBtn = container.querySelector('#rw-end-btn');
+    if (endBtn) endBtn.style.display = 'flex';
 
     appendMessage(container, 'agent', DEFAULT_GREETING, false);
     renderSidebarList(container);
@@ -232,10 +239,25 @@
               <span class="rw-status-dot"></span><span>En línea</span>
             </div>
           </div>
+          <button class="rw-header-end" id="rw-end-btn" title="Finalizar Chat" style="display:none;">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 11H7v-2h10v2z"/></svg> 
+            Terminar
+          </button>
           <button class="rw-header-close" id="rw-close" title="Cerrar emergente">${ICONS.close}</button>
         </div>
 
         <div class="rw-body" id="rw-chat-history"></div>
+
+        <div class="rw-confirm-overlay" id="rw-confirm-overlay">
+          <div class="rw-confirm-dialog">
+            <div class="rw-confirm-title">Finalizar conversación</div>
+            <div class="rw-confirm-text">¿Estás seguro de que deseas terminar este chat? No podrás volver a enviar mensajes en esta sesión.</div>
+            <div class="rw-confirm-actions">
+              <button class="rw-btn rw-btn-cancel" id="rw-confirm-cancel">Cancelar</button>
+              <button class="rw-btn rw-btn-danger" id="rw-confirm-yes">Sí, finalizar</button>
+            </div>
+          </div>
+        </div>
 
         <div class="rw-footer">
           <div class="rw-input-wrapper">
@@ -295,6 +317,10 @@
     const overlay = container.querySelector('#rw-sidebar-overlay');
     const sidebarClose = container.querySelector('#rw-sidebar-close');
     const newChatBtn = container.querySelector('#rw-new-chat');
+    const headerEndBtn = container.querySelector('#rw-end-btn');
+    const confirmOverlay = container.querySelector('#rw-confirm-overlay');
+    const confirmCancelBtn = container.querySelector('#rw-confirm-cancel');
+    const confirmYesBtn = container.querySelector('#rw-confirm-yes');
 
     function toggleSidebar(open) {
       isSidebarOpen = open;
@@ -311,6 +337,25 @@
       toggleSidebar(false);
       await createNewChat(container);
     });
+
+    if (headerEndBtn) {
+      headerEndBtn.addEventListener('click', () => {
+        confirmOverlay.classList.add('rw-visible');
+      });
+    }
+
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', () => {
+        confirmOverlay.classList.remove('rw-visible');
+      });
+    }
+
+    if (confirmYesBtn) {
+      confirmYesBtn.addEventListener('click', async () => {
+        confirmOverlay.classList.remove('rw-visible');
+        await endCurrentChat(container);
+      });
+    }
 
     fab.addEventListener('click', () => {
       isPanelOpen = !isPanelOpen;
@@ -478,6 +523,9 @@
   function handleChatEnded(container) {
     const input = container.querySelector('#rw-input');
     const sendBtn = container.querySelector('#rw-send');
+    const endBtn = container.querySelector('#rw-end-btn');
+    
+    if (endBtn) endBtn.style.display = 'none';
 
     input.setAttribute('disabled', 'true');
     input.placeholder = "El chat ha finalizado.";
@@ -518,6 +566,26 @@
       }
     } catch (e) {
       console.warn("No se pudo verificar el status del chat", e);
+    }
+  }
+
+  async function endCurrentChat(container) {
+    if (!chatId) return;
+    try {
+      const resp = await fetch(API_END_URL, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId })
+      });
+      if (resp.ok) {
+         markChatAsEnded(chatId);
+         handleChatEnded(container);
+         renderSidebarList(container);
+      } else {
+         console.error('Error finalizando chat', await resp.text());
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
