@@ -2,6 +2,7 @@
 api/logs/*.log
 api/logs/*
 !api/logs/.gitkeep
+pastpv/*
 
 # OS generated files
 .DS_Store

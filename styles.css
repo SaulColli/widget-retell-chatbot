@@ -308,4 +308,5 @@
   }
   .rw-panel::before { border-radius: 0; }
   .rw-fab { bottom: 16px; right: 16px; width: 56px; height: 56px; }
+  .rw-fab.rw-open { display: none !important; }
 }
