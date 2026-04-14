@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Página de prueba para el Widget de Voz con Retell AI">
   <title>Test Widget — Retell AI Voice</title>
+
   <style>
     /* Estilos de la página de prueba (demo) */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -122,8 +123,9 @@
        Este es el único código que necesitas agregar.
        Cambia data-agent-id por el ID de tu agente.
        ============================================= -->
-  <script src="widget/app.js" data-agent-id="agent_xxxxxxxxxxxxxxxxxxxx" defer>
+  <script src="script.js" data-agent-id="agent_xxxxxxxxxxxxxx" data-canal="WIDGET" defer>
   </script>
+
 </body>
 
 </html>

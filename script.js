@@ -16,14 +16,15 @@
 
   const AGENT_ID = scriptEl.getAttribute('data-agent-id');
   const CANAL = scriptEl.getAttribute('data-canal') || 'WIDGET';
-  const scriptSrc = new URL(scriptEl.src, window.location.href);
-  const BASE_URL = scriptSrc.href.substring(0, scriptSrc.href.lastIndexOf('/widget/'));
+  const BASE_URL = window.location.origin + "/TestWidgetFluenty"; // Cambia esto si tu endpoint es diferente
 
-  const STYLES_URL = BASE_URL + '/widget/styles.css';
-  const API_INIT_URL = BASE_URL + '/api/chat_init.php';
-  const API_MSG_URL = BASE_URL + '/api/chat_message.php';
-  const API_STATUS_URL = BASE_URL + '/api/chat_status.php';
-  const API_END_URL = BASE_URL + '/api/chat_end.php';
+  console.log("Base URL for API:", BASE_URL);
+
+  const STYLES_URL = BASE_URL + '/styles.css';
+  const API_INIT_URL = BASE_URL + '/ajax.php?action=init';
+  const API_MSG_URL = BASE_URL + '/ajax.php?action=message';
+  const API_STATUS_URL = BASE_URL + '/ajax.php?action=status';
+  const API_END_URL = BASE_URL + '/ajax.php?action=end';
   const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap';
 
   const DEFAULT_GREETING = 'Hola, gracias por contactar con Ocean Tours. Soy Sara. ¿En qué puedo ayudarle hoy?';
@@ -186,7 +187,7 @@
       if (chat.status === 'ended') return;
       
       try {
-        const resp = await fetch(`${API_STATUS_URL}?chat_id=${chat.id}`);
+        const resp = await fetch(`${API_STATUS_URL}&chat_id=${chat.id}`);
         if (resp.ok) {
           const data = await resp.json();
           if (data.chat_status === 'ended' || data.chat_status === 'completed' || data.chat_status === 'done' || data.chat_status === 'cancelled') {
@@ -554,7 +555,7 @@
   async function checkChatEnded(container, targetChatId) {
     if (!targetChatId) return;
     try {
-      const resp = await fetch(`${API_STATUS_URL}?chat_id=${targetChatId}`);
+      const resp = await fetch(`${API_STATUS_URL}&chat_id=${targetChatId}`);
       if (resp.ok) {
         const data = await resp.json();
         if (data.chat_status === 'ended' || data.chat_status === 'completed' || data.chat_status === 'done' || data.chat_status === 'cancelled') {

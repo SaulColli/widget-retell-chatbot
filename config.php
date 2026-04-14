@@ -6,13 +6,13 @@
  * Este archivo contiene las credenciales y configuración
  * para la comunicación con Retell AI.
  *
- * ⚠️ NUNCA exponer este archivo al público.
+ * NUNCA exponer este archivo al público.
  *    Está protegido por .htaccess.
  * =============================================
  */
 
 // ── Credenciales de Retell AI ──
-define('RETELL_API_KEY', 'key_xxxxxxxxxxxxxxxxxxxxxx');
+define('RETELL_API_KEY', 'key_xxxxxxxxxxxxxxxxxxxxx'); // Cambia esto por tu API Key real
 define('RETELL_API_BASE', 'https://api.retellai.com');
 
 // ── Secreto para verificar webhooks de Retell (HMAC SHA256) ──
